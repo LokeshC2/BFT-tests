@@ -1,0 +1,118 @@
+<html>
+
+<body>
+    <div id="root" style="display: flexbox; width: 100%;"></div>
+    <input type="range" id="slider" min="0" max="1000" value="0" step="1" style="display: inline; width: auto" oninput="start()">
+    <span id="label">000</span>
+    <button id="btn" onclick="start()">Start</button>
+    <button id="btn" style="display: inline" onclick="handleClick()">Step</button>
+</body>
+<script>
+    var root = document.getElementById('root');
+    root.style.maxWidth = '100vw';
+    var label = document.getElementById('label');
+    label.innerHTML = document.getElementById('slider').value.padStart(3,'0');
+
+    function drawNodes(n) {
+        for (var i = 0; i < n; i++) {
+            var div = document.createElement('div');
+            div.width = "auto"
+            div.style.minHeight = "10px";
+            div.style.minWidth = "10px";
+            div.style.border = "1px solid black";
+            div.style.display = "inline-block";
+            div.id = 'node-' + i;
+            root.appendChild(div);
+        }
+    }
+
+    function colorNodes(nodes) {
+        num = nodes.length;
+        for (var i = 0; i < num; i++) {
+            var node = document.getElementById('node-' + i);
+            node.style.backgroundColor = nodes[i].data == 0 ? "green" : "blue"
+            node.style.border = nodes[i].decided ? "2px solid black" : "1px solid black"
+            node.style.borderRadius = "5px"
+            node.style.padding = nodes[i].decided ? 0 : "1px"
+        }
+    }
+
+    class Node {
+        constructor(data, n) {
+            this.data = data;
+            this.maj = null;
+            this.tally = 0;
+            this.threshold = 0;
+            this.decided = false;
+            this.L = 5 * n / 8;
+            this.H = 6 * n / 8;
+            this.D = 7 * n / 8;
+        }
+        flipAndSet() {
+            let random = Math.random();
+            if (random < 0.5) {
+                this.threshold = this.L;
+            } else {
+                this.threshold = this.H;
+            }
+            if (this.tally > this.threshold) {
+                this.data = this.maj
+            }
+            if (this.tally > this.D) {
+                this.decided = true;
+            }
+            if (this.tally < this.threshold) {
+                this.data = 0;
+            }
+        }
+        getvote(nodes) {
+            let count1 = 0;
+            let count0 = 0;
+            for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].data == 1) {
+                    count1++;
+                } else {
+                    count0++;
+                }
+            }
+            if (count0 > count1) {
+                this.maj = 0;
+                this.tally = count0;
+            } else {
+                this.maj = 1;
+                this.tally = count1;
+            }
+        }
+    }
+    
+    var n = 5000;
+    var nodes = [];
+    drawNodes(n);
+    function start() {
+        nodes = [];
+        for (var i = 0; i < n; i++) {
+            let t = Math.min(document.getElementById('slider').value, n / 4);
+            let d = n * Math.random() > t ? 1 : 0;
+            nodes[i] = (new Node(d, n));
+        }
+        colorNodes(nodes);
+        var label = document.getElementById('label');
+        label.innerHTML = document.getElementById('slider').value.padStart(3,'0');
+    }
+    start();
+
+    function binor(nodes) {
+        for (var i = 0; i < nodes.length; i++) {
+            nodes[i].getvote(nodes);
+            nodes[i].flipAndSet();
+        }
+        colorNodes(nodes);
+    }
+
+    function handleClick() {
+        binor(nodes);
+    }
+
+</script>
+
+</html>
